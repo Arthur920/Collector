@@ -1,0 +1,95 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    const_labels:
+      label1: value1
+
+  debug:
+    verbosity: detailed
+  zipkin:
+    endpoint: "http://zipkin-all-in-one:9411/api/v2/spans"
+    format: proto
+
+  otlp:
+    endpoint: jaeger-all-in-one:4317
+    tls:
+      insecure: true
+
+processors:
+  batch:
+  metricstransform:
+      transforms:
+        - include: demo_client_request_counts_total
+          # match_type specifies whether the include name should be used as a strict match or regexp match, default = strict
+          match_type: strict
+          
+          # SPECIFY THE ACTION TO TAKE ON THE MATCHED METRIC(S)
+          
+          # action specifies if the operations (specified below) are performed on metrics in place (update), on an inserted clone (insert), or on a new combined metric (combine)
+          action: update
+          
+          # SPECIFY HOW TO TRANSFORM THE METRIC GENERATED AS A RESULT OF APPLYING THE ABOVE ACTION
+          
+          # new_name specifies the updated name of the metric; if action is insert or combine, new_name is required
+          new_name: demo_client_request_counts_total_updated
+
+          # operations contain a list of operations that will be performed on the resulting metric(s)
+          operations:
+            - action: experimental_scale_value
+              experimental_scale: 1000
+            #   # action defines the type of operation that will be performed, see examples below for more details
+            # - action: {add_label, update_label, delete_label_value, toggle_scalar_data_type, experimental_scale_value, aggregate_labels, aggregate_label_values}
+            #   # label specifies the label to operate on
+            #   label: <label>
+            #   # new_label specifies the updated name of the label; if action is add_label, new_label is required
+            #   new_label: <new_label>
+            #   # aggregated_values contains a list of label values that will be aggregated; if action is aggregate_label_values, aggregated_values is required
+            #   aggregated_values: [values...]
+            #   # new_value specifies the updated name of the label value; if action is add_label or aggregate_label_values, new_value is required
+            #   new_value: <new_value>
+            #   # label_value specifies the label value for which points should be deleted; if action is delete_label_value, label_value is required
+            #   label_value: <label_value>
+            #   # label_set contains a list of labels that will remain after aggregation; if action is aggregate_labels, label_set is required
+            #   label_set: [labels...]
+            #   # aggregation_type defines how data points will be aggregated; if action is aggregate_labels or aggregate_label_values, aggregation_type is required
+            #   aggregation_type: {sum, mean, min, max, count, median}
+            #   # experimental_scale specifies the scalar to apply to values. Scaling exponential histograms inherently involves some loss of accuracy. 
+            #   experimental_scale: <scalar>
+            #   # value_actions contain a list of operations that will be performed on the selected label
+            #   value_actions:
+            #       # value specifies the value to operate on
+            #     - value: <current_label_value>
+            #       # new_value specifies the updated value
+            #       new_value: <new_label_value>
+extensions:
+  health_check:
+  pprof:
+    endpoint: :1888
+  zpages:
+    endpoint: :55679
+
+service:
+  extensions: [pprof, zpages, health_check]
+  pipelines:
+    # traces:
+    #   receivers: [otlp]
+    #   processors: [batch]
+    #   exporters: [debug, zipkin, otlp]
+    metrics:
+      receivers: [otlp]
+      processors: [batch, metricstransform]
+      exporters: [debug, prometheus]
+  telemetry:
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: '0.0.0.0'
+                port: 8888

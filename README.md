@@ -31,8 +31,11 @@ The demo exposes the following backends:
 - Jaeger at http://0.0.0.0:16686
 - Zipkin at http://0.0.0.0:9411
 - Prometheus at http://0.0.0.0:9090
+- Grafana at http://0.0.0.0:3000
 
 Notes:
+
+- username & password credentials are unless changed by default both 'admin' 
 
 - The demo uses the otel-collector-config.yaml for different configurations adjust the docker-compose.yaml accordingly.
 

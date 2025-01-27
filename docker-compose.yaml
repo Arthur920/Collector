@@ -1,5 +1,6 @@
 services:
 
+# Grafana
   grafana:
     image: grafana/grafana-oss
     container_name: grafana
@@ -8,6 +9,10 @@ services:
     - '3000:3000'
     volumes:
       - grafana-storage:/var/lib/grafana
+    depends_on: # ensure that grafana can pull from specified endpoints
+     - jaeger-all-in-one
+     - zipkin-all-in-one
+     - prometheus
 
   # Jaeger
   jaeger-all-in-one:

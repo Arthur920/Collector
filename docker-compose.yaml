@@ -1,5 +1,14 @@
 services:
 
+  grafana:
+    image: grafana/grafana-oss
+    container_name: grafana
+    restart: always
+    ports:
+    - '3000:3000'
+    volumes:
+      - grafana-storage:/var/lib/grafana
+
   # Jaeger
   jaeger-all-in-one:
     image: jaegertracing/all-in-one:latest
@@ -22,11 +31,12 @@ services:
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.117.0
     restart: always
-    command: ["--config=/etc/otel-collector-config.yaml"] # is this line necessary? if config is specified below anyways
+    command: ["--config=/etc/otel-collector-config.yaml"]
     volumes:
-      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /var/lib/docker/containers/:/var/lib/docker/containers/ 
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml # change volume to test alternative configuration
+      - /var/run/docker.sock:/var/run/docker.sock # might be unnecessary
+      - /var/lib/docker/containers/:/var/lib/docker/containers/ # might be unnecessary
+      # - /home/q677364/test_log_dir/:/home/q677364/test_log_dir/
     ports:
       - "1888:1888"   # pprof extension
       - "8888:8888"   # Prometheus metrics exposed by the collector
@@ -69,3 +79,6 @@ services:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
+
+volumes:
+  grafana-storage: {}

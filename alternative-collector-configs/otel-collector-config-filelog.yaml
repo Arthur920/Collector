@@ -1,0 +1,66 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+  filelog:
+    include: [ /home/q677364/Collector/log_test_dir ]
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    const_labels:
+      label1: value1
+
+  debug:
+    verbosity: basic
+  zipkin:
+    endpoint: "http://zipkin-all-in-one:9411/api/v2/spans"
+    format: proto
+
+  otlp:
+    endpoint: jaeger-all-in-one:4317
+    tls:
+      insecure: true
+
+processors:
+  batch:
+  memory_limiter:
+    check_interval: 5s
+    limit_mib: 2385 # 2.5GB Hard limit
+    spike_limit_mib: 475 # additional 500MB -> 2GB soft limit & 2.5GB hard limit 
+    # limit_percentage: 10
+    # spike_limit_percentage: 5
+
+
+extensions:
+  health_check:
+  pprof:
+    endpoint: :1888
+  zpages:
+    endpoint: :55679
+
+service:
+  extensions: [pprof, zpages, health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug, zipkin, otlp]
+    metrics:
+      receivers: [otlp]
+      processors: [batch, memory_limiter]
+      exporters: [prometheus]
+    logs:
+      receivers: [filelog]
+      processors: [batch]
+      exporters: [debug]
+  telemetry:
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: '0.0.0.0'
+                port: 8888

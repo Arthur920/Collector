@@ -37,7 +37,7 @@ services:
     image: otel/opentelemetry-collector-contrib:0.117.0
     restart: always
     command: ["--config=/etc/otel-collector-config.yaml"]
-    user: "0:0"
+    user: "0:0" # set user to root and group to root UID 0 & GID 0 
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml # change volume to test alternative configuration
       # - /var/run/docker.sock:/var/run/docker.sock # might be unnecessary

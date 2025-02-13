@@ -37,13 +37,13 @@ services:
     image: otel/opentelemetry-collector-contrib:0.117.0
     restart: always
     command: ["--config=/etc/otel-collector-config.yaml"]
+    user: "0:0"
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml # change volume to test alternative configuration
       # - /var/run/docker.sock:/var/run/docker.sock # might be unnecessary
       # - /var/lib/docker/containers/:/var/lib/docker/containers/ # might be unnecessary
       - /home/q677364/Collector/log_test_dir:/var/test/docker
       - /var/lib/docker/containers:/var/lib/docker/containers
-
     ports:
       - "1888:1888"   # pprof extension
       - "8888:8888"   # Prometheus metrics exposed by the collector

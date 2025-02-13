@@ -1,7 +1,10 @@
 receivers:
   filelog:
-    include: [ var/lib/docker/containers/*/*.json ]
-
+    include: [ var/lib/docker/containers/*/*.log ]
+    operators:
+      - id: container 
+        type: json_parser
+        format: docker
 exporters:
   prometheus:
     endpoint: "0.0.0.0:8889"
